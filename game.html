@@ -1,0 +1,137 @@
+<title>Blocky</title>
+<style>body{margin:0;}</style>
+<div id="dwqp">
+<input type="file" id="fileInput" value="Upload your world"/>
+</div>
+<div id="dwqn">
+<a href="" id="a" onclick="downloadd()">Click here to download your world</a><br>
+</div>
+<canvas id='a'></canvas>
+<script>
+console.log('hello there!')
+const canvas=document.querySelector('canvas')
+canvas.oncontextmenu=()=>false
+canvas.height=innerHeight
+canvas.width=innerWidth
+const cxt=canvas.getContext('2d')
+class Player {
+	constructor(x,y,radius,color){
+		this.x=x
+		this.y=y
+		this.radius=radius
+		this.color=color
+	}
+	draw(){
+		cxt.beginPath()
+		cxt.arc(this.x,this.y,this.radius,0,Math.PI*2,false)
+		cxt.fillStyle=this.color
+		cxt.fill()
+	}
+}
+const middlex=canvas.width/2
+const middley=canvas.height/2
+const wofsqare=canvas.width/11
+const hofsqare=canvas.height/11
+console.log({wofsqare,hofsqare})
+const player=new Player(middlex,middley,hofsqare/8+wofsqare/8,'blue')
+let playerposx=0
+let playerposy=0
+let data=new Map()
+var x = document.getElementById("dwqn")
+x.style.display = "none";
+var x = document.getElementById("dwqp")
+x.style.display = "none";
+function animate() {
+	requestAnimationFrame(animate)
+	cxt.clearRect(0,0,canvas.width,canvas.height)
+	for (let i=0;i<11;i++) {
+		for (let j=0;j<11;j++) {
+			if (data.has(String(i-5+playerposx)+':'+String(j-5+playerposy))===true) {
+				if (data.get(String(i-5+playerposx)+':'+String(j-5+playerposy))===1){
+					cxt.fillStyle = "green"
+					cxt.fillRect(i*wofsqare,j*hofsqare,wofsqare,hofsqare)
+				}
+			}else{
+				data.set(String(i-5+playerposx)+':'+String(j-5+playerposy),Math.floor(Math.random()*2))
+			}
+		}
+	}
+	player.draw()
+}
+addEventListener('mousedown', (event) =>{
+	var xtouch=String(parseInt(event.clientX/wofsqare)-5+playerposx)
+	var ytouch=String(parseInt(event.clientY/hofsqare)-5+playerposy)
+	if (event.button===0){
+		data.set(xtouch+':'+ytouch,0)
+	}else{
+		data.set(xtouch+':'+ytouch,1)
+	}
+})
+addEventListener('keydown', (event) =>{
+	console.log(event)
+	if (data.get(String(playerposx+1)+':'+String(playerposy))===0 && (event.key==="ArrowRight" || event.key==="d")){
+		playerposx=playerposx+1
+	}
+	if (data.get(String(playerposx-1)+':'+String(playerposy))===0 && (event.key==="ArrowLeft" || event.key==="a")){
+		playerposx=playerposx-1
+	}
+	if (data.get(String(playerposx)+':'+String(playerposy-1))===0 && (event.key==="ArrowUp" || event.key==="w")){
+		playerposy=playerposy-1
+	}
+	if (data.get(String(playerposx)+':'+String(playerposy+1))===0 && (event.key==="ArrowDown" || event.key==="s")){
+		playerposy=playerposy+1
+	}
+	if (event.key==="p"){
+		var x = document.getElementById("dwqn")
+		if (x.style.display === "none") {
+			x.style.display = "block";
+		} else {
+			x.style.display = "none";
+		}
+		var x = document.getElementById("dwqp")
+		x.style.display = "none";
+	}
+	if (event.key==="o"){
+		var x = document.getElementById("dwqp")
+		if (x.style.display === "none") {
+			x.style.display = "block";
+		} else {
+			x.style.display = "none";
+		}
+		var x = document.getElementById("dwqn")
+		x.style.display = "none";
+	}
+})
+function objToString(obj) {
+	return Object.entries(obj).reduce((str, [p, val]) => {
+		return `${str}${p}::${val}\n`;
+	}, '');
+}
+function downloadd() {
+	var obj = Object.fromEntries(data);
+	download(JSON.stringify(obj),'world.txt','text/plain')
+}
+function download(text, name, type) {
+	var a = document.getElementById("a");
+	var file = new Blob([text], {type: type});
+	a.href = URL.createObjectURL(file);
+	a.download = name;
+}
+const input = document.getElementById("fileInput");
+input.addEventListener("change", function(event) {
+	const file = event.target.files[0];
+	const reader = new FileReader();
+	reader.addEventListener("load", function(event) {
+		const contents = event.target.result;
+		data.clear();
+		for (const[key, value] of Object.entries(JSON.parse(contents))) {
+			data.set(key, value);
+		}
+		console.log(contents);
+		var x = document.getElementById("dwqp")
+		x.style.display = "none";
+	});
+	reader.readAsText(file);
+});
+animate()
+</script>
